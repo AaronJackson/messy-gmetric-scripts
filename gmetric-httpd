@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+count=$(wc -l /var/log/httpd/access_log | cut -f1 -d' ')
+if [ ! -f /tmp/reqcount ] ; then
+   echo $count > /tmp/reqcount
+fi
+
+oldcount=$(cat /tmp/reqcount)
+
+diff=$(( count - oldcount ))
+
+gmetric -T "HTTPD Requests Per Minute" \
+    -n httpd_rpm -t float -d 600 \
+    -v $diff -u 'reqs/min'
+
+echo $count > /tmp/reqcount

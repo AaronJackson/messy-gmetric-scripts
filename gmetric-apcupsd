@@ -1,0 +1,21 @@
+#!/bin/bash
+
+UPS=(ups0 ups1)
+
+for ups in "${UPS[@]}" ; do
+    o=$(apcaccess -f /etc/apcupsd/apcupsd-${ups}.conf)
+
+    charge=$(echo "$o" | grep ^BCHARGE | \
+	awk -F: '{ print $2 }' | awk '{ print $1 }')
+
+    voltage=$(echo "$o" | grep ^BATTV | \
+	awk -F: '{ print $2 }' | awk '{ print $1 }')
+
+    gmetric -T "UPS Battery Charge ${ups}" \
+	-n UPS_Charge_${ups} -t float -d 600 \
+	-v $charge -u 'Percent'
+    gmetric -T "UPS Battery Voltage ${ups}" \
+	-n UPS_voltage_${ups} -t float -d 600 \
+	-v $voltage -u 'Volts'
+done
+

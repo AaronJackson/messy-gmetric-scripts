@@ -1,0 +1,26 @@
+#!/bin/bash
+
+o=$(cat /proc/net/rpc/nfsd)
+
+if [ ! -f /tmp/nfsd.gmetric ] ; then
+    echo "$o" > /tmp/nfsd.gmetric
+fi
+
+oo=$(cat /tmp/nfsd.gmetric)
+
+Z="getattr,11 open,21 read,28 write,41"
+
+echo "$Z" | tr ' ' '\n' | \
+    while read op ; do
+    opname=$(echo $op | awk -F, '{ print $1 }')
+    opcol=$(echo $op | awk -F, '{ print $2 }')
+
+    new=$(echo "$o" | grep ^proc4ops | cut -d' ' -f$opcol)
+    old=$(echo "$oo" | grep ^proc4ops | cut -d' ' -f$opcol)
+
+    gmetric -T "NFS Operation ${opname}" \
+	-n NFS_Op_${opname} -t float -d 60 \
+	-v $(( new - old )) -u "${opname}/min"
+    done
+
+echo "$o" > /tmp/nfsd.gmetric
