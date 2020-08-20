@@ -1,0 +1,9 @@
+* Some Messy Gmetric Scripts
+
+for ganglia.
+
+Intended to be run minutely from cron.
+
+License: do what ever you want but don't blame me.
+
+
